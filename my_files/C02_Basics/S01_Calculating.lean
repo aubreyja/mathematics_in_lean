@@ -124,8 +124,20 @@ example (a b : ℝ) : (a + b) * (a - b) = a ^ 2 - b ^ 2 := by
       rw [add_sub (a * a - a * b)]
     _ = a * a - a * b + a * b - b * b := by
       rw [mul_comm b a]
-    _ = a * a - (a * b + 0) + a * b - b * b := by
-      rw [add_zero (a*b)]
+    _ = (a * b + (a * a - a * b)) - b * b := by
+      rw [add_comm (a * a - a * b)]
+    _ = ((a * b + a * a) - a * b) - b * b := by
+      rw [add_sub]
+    _ = (a * a + a * b) - a * b - b * b := by
+      rw [add_comm (a * a)]
+    _ = a * a + (a * b - a * b) - b * b := by
+      rw [add_sub]
+    _ = a * a + 0 - b * b := by
+      rw [sub_self]
+    _ = a * a - b * b := by
+      rw [add_zero]
+    _= a ^ 2 - b ^ 2 := by
+      rw [pow_two,pow_two]
 
 
 #check pow_two a
