@@ -74,17 +74,27 @@ theorem zero_mul (a : R) : 0 * a = 0 := by
   rw [add_left_cancel h]
 
 theorem neg_eq_of_add_eq_zero {a b : R} (h : a + b = 0) : -a = b := by
+  have h1 : -a + (a + b) = b :=
+    by rw [neg_add_cancel_left]
+  rw [h] at h1
+  rw [add_zero] at h1
+  exact h1
 
 
 theorem eq_neg_of_add_eq_zero {a b : R} (h : a + b = 0) : a = -b := by
-  sorry
+  symm
+  apply neg_eq_of_add_eq_zero
+  rw[add_comm]
+  exact h
+
 
 theorem neg_zero : (-0 : R) = 0 := by
   apply neg_eq_of_add_eq_zero
   rw [add_zero]
 
 theorem neg_neg (a : R) : - -a = a := by
-  sorry
+  apply neg_eq_of_add_eq_zero
+  rw[neg_add_cancel]
 
 end MyRing
 
@@ -107,13 +117,16 @@ namespace MyRing
 variable {R : Type*} [Ring R]
 
 theorem self_sub (a : R) : a - a = 0 := by
-  sorry
+  rw[sub_eq_add_neg, add_neg_cancel]
 
 theorem one_add_one_eq_two : 1 + 1 = (2 : R) := by
   norm_num
 
 theorem two_mul (a : R) : 2 * a = a + a := by
-  sorry
+  nth_rw 2 [← one_mul a]
+  nth_rw 3 [← one_mul a]
+  rw[← add_mul]
+  rw[one_add_one_eq_two]
 
 end MyRing
 
