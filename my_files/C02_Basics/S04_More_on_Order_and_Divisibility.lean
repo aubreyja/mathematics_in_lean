@@ -50,22 +50,80 @@ example : max a b = max b a := by
   apply h
   apply h
 
+#check (le_refl : ∀ a, a ≤ a)
+#check (le_trans : a ≤ b → b ≤ c → a ≤ c)
+#check (lt_of_le_of_lt : a ≤ b → b < c → a < c)
+#check (lt_of_lt_of_le : a < b → b ≤ c → a < c)
+#check (lt_trans : a < b → b < c → a < c)
+#check (min_le_left a b : min a b ≤ a)
+#check (min_le_right a b : min a b ≤ b)
+#check (le_min : c ≤ a → c ≤ b → c ≤ min a b)
+#check max_le
+#check le_max_left
+
 example : min (min a b) c = min a (min b c) := by
   apply le_antisymm
-  · apply le_min
-    · apply le_trans
-
+  · show min (min a b) c ≤ min a (min b c)
+    apply le_min
+    · show min (min a b) c ≤ a
+      apply le_trans
+      apply min_le_left
+      apply min_le_left
+    · show min (min a b) c ≤ min b c
+      apply le_min
+      · show min (min a b) c ≤ b
+        apply le_trans
+        apply min_le_left
+        apply min_le_right
+      · show min (min a b) c ≤ c
+        apply min_le_right
+  · show min a (min b c) ≤ min (min a b) c
+    apply le_min
+    · show min a (min b c) ≤ min a b
+      apply le_min
+      · show min a (min b c) ≤ a
+        apply min_le_left
+      · show min a (min b c) ≤ b
+        apply le_trans
+        apply min_le_right
+        apply min_le_left
+    · show min a (min b c) ≤ c
+      apply le_trans
+      apply min_le_right
+      apply min_le_right
 
 theorem aux : min a b + c ≤ min (a + c) (b + c) := by
-  sorry
+  apply le_min
+  · show min a b + c ≤ a + c
+    apply add_le_add_right
+    apply min_le_left
+  · show min a b + c ≤ b + c
+    apply add_le_add_right
+    apply min_le_right
 
 example : min a b + c = min (a + c) (b + c) := by
-  sorry
+  apply le_antisymm
+  · show min a b + c ≤ min (a + c) (b + c)
+    apply aux
+  · show min (a + c) (b + c) ≤ min a b + c
+    have h : min (a + c) (b + c) = min (a + c) (b + c) - c + c := by rw [sub_add_cancel]
+    rw[h]
+    apply add_le_add_right
+    rw [sub_eq_add_neg]
+    apply le_trans
+    apply aux
+    rw[add_neg_cancel_right, add_neg_cancel_right]
+
+
+#check add_neg_cancel_right
+#check sub_add_cancel
 
 #check (abs_add : ∀ a b : ℝ, |a + b| ≤ |a| + |b|)
 
-example : |a| - |b| ≤ |a - b| :=
-  sorry
+example : |a| - |b| ≤ |a - b| := by
+  have h : |(a-b) + b| ≤ |a-b| + |b| := by apply abs_add (a-b) b
+  rw[sub_add_cancel] at h
+  linarith
 end
 
 section
@@ -73,6 +131,10 @@ variable (w x y z : ℕ)
 
 example (h₀ : x ∣ y) (h₁ : y ∣ z) : x ∣ z :=
   dvd_trans h₀ h₁
+
+#check dvd_mul_left
+#check dvd_mul_of_dvd_left
+#check dvd_add
 
 example : x ∣ y * x * z := by
   apply dvd_mul_of_dvd_left
@@ -82,7 +144,17 @@ example : x ∣ x ^ 2 := by
   apply dvd_mul_left
 
 example (h : x ∣ w) : x ∣ y * (x * z) + x ^ 2 + w ^ 2 := by
-  sorry
+  apply dvd_add
+  · show x ∣ y * (x * z) + x^2
+    apply dvd_add
+    · show x ∣ y * (x * z)
+      apply dvd_mul_of_dvd_right
+      apply dvd_mul_right
+    · show x ∣ x^2
+      apply dvd_mul_left
+  · show x ∣  w ^ 2
+    rw[pow_two]
+    exact dvd_mul_of_dvd_left h w
 end
 
 section
@@ -92,7 +164,16 @@ variable (m n : ℕ)
 #check (Nat.gcd_zero_left n : Nat.gcd 0 n = n)
 #check (Nat.lcm_zero_right n : Nat.lcm n 0 = 0)
 #check (Nat.lcm_zero_left n : Nat.lcm 0 n = 0)
+#check gcd_dvd_left
 
 example : Nat.gcd m n = Nat.gcd n m := by
-  sorry
+  apply Nat.dvd_antisymm
+  · show Nat.gcd m n ∣ Nat.gcd n m
+    apply Nat.dvd_gcd
+    apply Nat.gcd_dvd_right
+    apply Nat.gcd_dvd_left
+  · show Nat.gcd n m ∣ Nat.gcd m n
+    apply Nat.dvd_gcd
+    apply Nat.gcd_dvd_right
+    apply Nat.gcd_dvd_left
 end
