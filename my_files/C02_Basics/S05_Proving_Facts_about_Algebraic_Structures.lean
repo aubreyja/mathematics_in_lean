@@ -155,9 +155,7 @@ variable {α : Type*} [Lattice α]
 variable (a b c : α)
 
 example (h : ∀ x y z : α, x ⊓ (y ⊔ z) = x ⊓ y ⊔ x ⊓ z) : a ⊔ b ⊓ c = (a ⊔ b) ⊓ (a ⊔ c) := by
-  apply le_antisymm
-  · show a ⊔ b ⊓ c ≤ (a ⊔ b) ⊓ (a ⊔ c)
-  · show (a ⊔ b) ⊓ (a ⊔ c) ≤ a ⊔ b ⊓ c
+  sorry
 
 example (h : ∀ x y z : α, x ⊔ y ⊓ z = (x ⊔ y) ⊓ (x ⊔ z)) : a ⊓ (b ⊔ c) = a ⊓ b ⊔ a ⊓ c := by
   sorry
@@ -187,11 +185,20 @@ example (h: 0 ≤ b - a) : a ≤ b := by
   apply add_le_add_left h
 
 example (h : a ≤ b) (h' : 0 ≤ c) : a * c ≤ b * c := by
-  rw[← add_zero (a * c)]
-  rw[← sub_add_cancel (b * c) (a * c)]
-  rw[add_comm (b * c - a * c)]
-
-
+  have h₀ : 0 ≤ b - a := by
+    rw[← sub_self a]
+    rw[sub_eq_add_neg,sub_eq_add_neg]
+    apply add_le_add_right
+    exact h
+  have h₁ : 0 ≤ (b-a) * c := by apply mul_nonneg h₀ h'
+  rw [sub_mul] at h₁
+  have h₂ : 0 + a * c ≤ b * c - a * c + a * c := by apply add_le_add_right h₁
+  rw [zero_add] at h₂
+  rw [sub_eq_add_neg] at h₂
+  rw [add_assoc] at h₂
+  rw [neg_add_cancel] at h₂
+  rw [add_zero] at h₂
+  exact h₂
 end
 
 section
@@ -205,6 +212,11 @@ variable (x y z : X)
 #check nonneg_of_mul_nonneg_left
 
 example (x y : X) : 0 ≤ dist x y := by
-  sorry
-
+  have h : dist x x ≤ dist x y + dist y x := by apply dist_triangle
+  rw[dist_self] at h
+  rw[dist_comm] at h
+  rw[← two_mul] at h
+  rw[dist_comm] at h
+  rw[mul_comm] at h
+  exact nonneg_of_mul_nonneg_left h zero_lt_two
 end
