@@ -34,6 +34,7 @@ variable (x y z : α)
 #check (le_sup_left : x ≤ x ⊔ y)
 #check (le_sup_right : y ≤ x ⊔ y)
 #check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
+#check inf_le_of_left_le
 
 example : x ⊓ y = y ⊓ x := by
   apply le_antisymm
@@ -52,15 +53,46 @@ example : x ⊓ y ⊓ z = x ⊓ (y ⊓ z) := by
     apply le_inf
     · show x ⊓ y ⊓ z ≤  x
       apply le_trans
+      apply inf_le_left
+      apply inf_le_left
     · show x ⊓ y ⊓ z ≤ y ⊓ z
+      apply le_inf
+      · show x ⊓ y ⊓ z ≤ y
+        have h₁ : x ⊓ y ≤ y := by apply inf_le_right
+        exact inf_le_of_left_le h₁
+      · show x ⊓ y ⊓ z ≤ z
+        exact inf_le_right
   · show x ⊓ (y ⊓ z) ≤  x ⊓ y ⊓ z
     apply le_inf
+    · show x ⊓ (y ⊓ z) ≤ x ⊓ y
+      apply le_inf
+      · show x ⊓ (y ⊓ z) ≤ x
+        apply inf_le_left
+      · show x ⊓ (y ⊓ z) ≤ y
+        have h₂ : y ⊓ z ≤ y := by apply inf_le_left
+        exact inf_le_of_right_le h₂
+    · show x ⊓ (y ⊓ z) ≤ z
+      have h₃: y ⊓ z ≤ z := by apply inf_le_right
+      have h₄: x ⊓ (y ⊓ z) ≤ y ⊓ z := by apply inf_le_right
+      exact le_trans h₄ h₃
 
 example : x ⊔ y = y ⊔ x := by
-  sorry
+  apply le_antisymm
+  · show x ⊔ y ≤ y ⊔ x
+    have h₀ : x ≤ y ⊔ x := by apply le_sup_right
+    have h₁ : y ≤ y ⊔ x := by apply le_sup_left
+    exact sup_le h₀ h₁
+  · show y ⊔ x ≤ x ⊔ y
+    have h₂ : x ≤ x ⊔ y := by apply le_sup_left
+    have h₃ : y ≤ x ⊔ y := by apply le_sup_right
+    exact sup_le h₃ h₂
 
 example : x ⊔ y ⊔ z = x ⊔ (y ⊔ z) := by
-  sorry
+  apply le_antisymm
+  · show x ⊔ y ⊔ z ≤ x ⊔ (y ⊔ z)
+    --have h₁ : y ≤ y ⊔ z := by apply le_sup_left
+    --have h₂ : x ⊔
+  · show x ⊔ (y ⊔ z) ≤ x ⊔ y ⊔ z
 
 theorem absorb1 : x ⊓ (x ⊔ y) = x := by
   sorry
