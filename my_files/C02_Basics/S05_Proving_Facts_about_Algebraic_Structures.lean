@@ -90,15 +90,53 @@ example : x ⊔ y = y ⊔ x := by
 example : x ⊔ y ⊔ z = x ⊔ (y ⊔ z) := by
   apply le_antisymm
   · show x ⊔ y ⊔ z ≤ x ⊔ (y ⊔ z)
-    --have h₁ : y ≤ y ⊔ z := by apply le_sup_left
-    --have h₂ : x ⊔
+    apply sup_le
+    · show x ⊔ y ≤ x ⊔ (y ⊔ z)
+      apply sup_le
+      · show x ≤ x ⊔ (y ⊔ z)
+        apply le_sup_left
+      · show y ≤ x ⊔ (y ⊔ z)
+        have h₀ : y ≤ y ⊔ z := by apply le_sup_left
+        have h₁ : y ⊔ z ≤ x ⊔ (y ⊔ z) := by apply le_sup_right
+        exact le_trans h₀ h₁
+    · show z ≤ x ⊔ (y ⊔ z)
+      have h₂ : z ≤ y ⊔ z := by apply le_sup_right
+      have h₃ : y ⊔ z ≤ x ⊔ (y ⊔ z) := by apply le_sup_right
+      exact le_trans h₂ h₃
   · show x ⊔ (y ⊔ z) ≤ x ⊔ y ⊔ z
+    apply sup_le
+    · show x ≤ x ⊔ y ⊔ z
+      have h₄ : x ≤ x ⊔ y := by apply le_sup_left
+      have h₅ : x ⊔ y ≤ x ⊔ y ⊔ z := by apply le_sup_left
+      exact le_trans h₄ h₅
+    · show y ⊔ z ≤ x ⊔ y ⊔ z
+      apply sup_le
+      · show y ≤ x ⊔ y ⊔ z
+        have h₆ : y ≤ x ⊔ y := by apply le_sup_right
+        have h₇ : x ⊔ y ≤ x ⊔ y ⊔ z := by apply le_sup_left
+        exact le_trans h₆ h₇
+      · show z ≤ x ⊔ y ⊔ z
+        exact le_sup_right
 
 theorem absorb1 : x ⊓ (x ⊔ y) = x := by
-  sorry
+  apply le_antisymm
+  · show x ⊓ (x ⊔ y) ≤ x
+    exact inf_le_left
+  · show x ≤ x ⊓ (x ⊔ y)
+    apply le_inf
+    · show x ≤ x
+      apply le_refl
+    · show x ≤ x ⊔ y
+      apply le_sup_left
 
 theorem absorb2 : x ⊔ x ⊓ y = x := by
-  sorry
+  apply le_antisymm
+  · show x ⊔ x ⊓ y ≤ x
+    have h₀ : x ≤ x := by apply le_refl
+    have h₁ : x ⊓ y ≤ x := by apply inf_le_left
+    apply sup_le h₀ h₁
+  · show x ≤ x ⊔ x ⊓ y
+    apply le_sup_left
 
 end
 
@@ -117,7 +155,9 @@ variable {α : Type*} [Lattice α]
 variable (a b c : α)
 
 example (h : ∀ x y z : α, x ⊓ (y ⊔ z) = x ⊓ y ⊔ x ⊓ z) : a ⊔ b ⊓ c = (a ⊔ b) ⊓ (a ⊔ c) := by
-  sorry
+  apply le_antisymm
+  · show a ⊔ b ⊓ c ≤ (a ⊔ b) ⊓ (a ⊔ c)
+  · show (a ⊔ b) ⊓ (a ⊔ c) ≤ a ⊔ b ⊓ c
 
 example (h : ∀ x y z : α, x ⊔ y ⊓ z = (x ⊔ y) ⊓ (x ⊔ z)) : a ⊓ (b ⊔ c) = a ⊓ b ⊔ a ⊓ c := by
   sorry
@@ -132,15 +172,25 @@ variable (a b c : R)
 #check (mul_pos : 0 < a → 0 < b → 0 < a * b)
 
 #check (mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b)
+#check sub_self
 
 example (h : a ≤ b) : 0 ≤ b - a := by
-  sorry
+  rw[← sub_self a]
+  rw[sub_eq_add_neg,sub_eq_add_neg]
+  apply add_le_add_right
+  exact h
 
 example (h: 0 ≤ b - a) : a ≤ b := by
-  sorry
+  rw[← add_zero a]
+  rw[← sub_add_cancel b a]
+  rw[add_comm (b-a)]
+  apply add_le_add_left h
 
 example (h : a ≤ b) (h' : 0 ≤ c) : a * c ≤ b * c := by
-  sorry
+  rw[← add_zero (a * c)]
+  rw[← sub_add_cancel (b * c) (a * c)]
+  rw[add_comm (b * c - a * c)]
+
 
 end
 
@@ -151,6 +201,8 @@ variable (x y z : X)
 #check (dist_self x : dist x x = 0)
 #check (dist_comm x y : dist x y = dist y x)
 #check (dist_triangle x y z : dist x z ≤ dist x y + dist y z)
+
+#check nonneg_of_mul_nonneg_left
 
 example (x y : X) : 0 ≤ dist x y := by
   sorry
