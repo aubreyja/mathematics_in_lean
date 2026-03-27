@@ -216,26 +216,39 @@ variable (s : Set α) (a b : α)
 def SetUb (s : Set α) (a : α) :=
   ∀ x, x ∈ s → x ≤ a
 
-example (h : SetUb s a) (h' : a ≤ b) : SetUb s b :=
-  sorry
-
+example (h : SetUb s a) (h' : a ≤ b) : SetUb s b := by
+  intro x xs
+  apply le_trans
+  apply h
+  apply xs
+  apply h'
 end
 
 section
 
 open Function
+#print add_left_inj
+#print mul_right_inj
 
 example (c : ℝ) : Injective fun x ↦ x + c := by
   intro x₁ x₂ h'
   exact (add_left_inj c).mp h'
 
 example {c : ℝ} (h : c ≠ 0) : Injective fun x ↦ c * x := by
-  sorry
+  intro x₁ x₂ h'
+  exact (mul_right_inj' h).mp h'
 
 variable {α : Type*} {β : Type*} {γ : Type*}
 variable {g : β → γ} {f : α → β}
 
 example (injg : Injective g) (injf : Injective f) : Injective fun x ↦ g (f x) := by
-  sorry
+  intro x₁ x₂ h
+  have h' : f x₁ = f x₂ := by apply injg h
+  exact injf h'
 
+example (injg : Injective g) (injf : Injective f) : Injective fun x ↦ g (f x) := by
+  intro x₁ x₂ h
+  apply injf
+  apply injg
+  apply h
 end
