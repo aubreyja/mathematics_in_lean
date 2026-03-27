@@ -92,10 +92,22 @@ example (nnf : FnLb f 0) (nng : FnLb g 0) : FnLb (fun x ↦ f x * g x) 0 := by
   dsimp
   exact mul_nonneg (nnf x) (nng x)
 
-example (hfa : FnUb f a) (hgb : FnUb g b) (nng : FnLb g 0) (nna : 0 ≤ a) :
-    FnUb (fun x ↦ f x * g x) (a * b) :=
-  sorry
+#check mul_nonneg
+#check abs_mul
+#print mul_le_mul
+#print abs_nonneg
+#print mul_lt_mul_right
+#print one_mul
 
+example (hfa : FnUb f a) (hgb : FnUb g b) (nng : FnLb g 0) (nna : 0 ≤ a) :
+    FnUb (fun x ↦ f x * g x) (a * b) := by
+    intro x
+    dsimp
+    apply mul_le_mul
+    apply hfa
+    apply hgb
+    apply nng
+    apply nna
 end
 
 section
@@ -126,11 +138,24 @@ example (mf : Monotone f) (mg : Monotone g) : Monotone fun x ↦ f x + g x := by
 example (mf : Monotone f) (mg : Monotone g) : Monotone fun x ↦ f x + g x :=
   fun a b aleb ↦ add_le_add (mf aleb) (mg aleb)
 
+example {c : ℝ} (mf : Monotone f) (nnc : 0 ≤ c) : Monotone fun x ↦ c * f x := by
+  intro a b aleb
+  dsimp
+  apply mul_le_mul_of_nonneg_left
+  apply mf aleb
+  apply nnc
+
 example {c : ℝ} (mf : Monotone f) (nnc : 0 ≤ c) : Monotone fun x ↦ c * f x :=
-  sorry
+  fun a b aleb ↦ mul_le_mul_of_nonneg_left (mf aleb) (nnc)
+
+example (mf : Monotone f) (mg : Monotone g) : Monotone fun x ↦ f (g x) := by
+  intro a b aleb
+  dsimp
+  have h : g a ≤ g b := by apply mg aleb
+  apply mf h
 
 example (mf : Monotone f) (mg : Monotone g) : Monotone fun x ↦ f (g x) :=
-  sorry
+  fun a b aleb ↦ mf (mg aleb)
 
 def FnEven (f : ℝ → ℝ) : Prop :=
   ∀ x, f x = f (-x)
@@ -146,14 +171,26 @@ example (ef : FnEven f) (eg : FnEven g) : FnEven fun x ↦ f x + g x := by
 
 
 example (of : FnOdd f) (og : FnOdd g) : FnEven fun x ↦ f x * g x := by
-  sorry
+  intro x
+  calc
+    (fun x ↦ f x * g x) x = f x * g x := rfl
+    _ = (-f (-x)) * (-g (-x)) := by rw [of, og]
+    _ = f (-x) * g (-x) := by ring
 
 example (ef : FnEven f) (og : FnOdd g) : FnOdd fun x ↦ f x * g x := by
-  sorry
+  intro x
+  calc
+    (fun x ↦ f x * g x) x = f x * g x := rfl
+    _ = (f (-x)) * (-g (-x)) := by rw [ef, og]
+    _ = -(f (-x) * g (-x)) := by ring
 
 example (ef : FnEven f) (og : FnOdd g) : FnEven fun x ↦ f (g x) := by
-  sorry
-
+  intro x
+  calc
+    (fun x ↦ f (g x) ) x = f ( g x ) := rfl
+    _ = f ( - g x ) := by rw [ef]
+    _ = f ( - (- g (-x ) ) ) := by rw [og]
+    _ = f ( g (-x ) ) := by ring
 end
 
 section
@@ -167,8 +204,9 @@ example : s ⊆ s := by
 theorem Subset.refl : s ⊆ s := fun x xs ↦ xs
 
 theorem Subset.trans : r ⊆ s → s ⊆ t → r ⊆ t := by
-  sorry
-
+  intro rs st x xr
+  have xs : x ∈ s := by exact rs xr
+  exact st xs
 end
 
 section
