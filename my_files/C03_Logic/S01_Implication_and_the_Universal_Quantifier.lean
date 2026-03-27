@@ -38,14 +38,28 @@ theorem my_lemma3 :
   intro x y ε epos ele1 xlt ylt
   sorry
 
+#check mul_le_mul_right
+#check mul_le_mul_left
+#check mul_lt_mul_left
+#check lt_of_le_of_lt
+#check lt_of_lt_of_le
+#check mul_lt_mul_iff_of_pos_right
+
 theorem my_lemma4 :
     ∀ {x y ε : ℝ}, 0 < ε → ε ≤ 1 → |x| < ε → |y| < ε → |x * y| < ε := by
   intro x y ε epos ele1 xlt ylt
   calc
-    |x * y| = |x| * |y| := sorry
-    _ ≤ |x| * ε := sorry
-    _ < 1 * ε := sorry
-    _ = ε := sorry
+    |x * y| = |x| * |y| := by apply abs_mul
+    _ ≤ |x| * ε :=  by
+      apply mul_le_mul
+      apply le_refl
+      apply le_of_lt ylt
+      apply abs_nonneg
+      apply abs_nonneg
+    _ < 1 * ε := by
+      have h : |x| < 1 := by apply lt_of_lt_of_le xlt ele1
+      exact (mul_lt_mul_iff_of_pos_right epos).mpr h
+    _ = ε := by apply one_mul
 
 def FnUb (f : ℝ → ℝ) (a : ℝ) : Prop :=
   ∀ x, f x ≤ a
@@ -56,6 +70,7 @@ def FnLb (f : ℝ → ℝ) (a : ℝ) : Prop :=
 section
 variable (f g : ℝ → ℝ) (a b : ℝ)
 
+#check add_le_add
 example (hfa : FnUb f a) (hgb : FnUb g b) : FnUb (fun x ↦ f x + g x) (a + b) := by
   intro x
   dsimp
@@ -63,11 +78,19 @@ example (hfa : FnUb f a) (hgb : FnUb g b) : FnUb (fun x ↦ f x + g x) (a + b) :
   apply hfa
   apply hgb
 
-example (hfa : FnLb f a) (hgb : FnLb g b) : FnLb (fun x ↦ f x + g x) (a + b) :=
-  sorry
+example (hfa : FnLb f a) (hgb : FnLb g b) : FnLb (fun x ↦ f x + g x) (a + b) := by
+  intro x
+  dsimp
+  apply add_le_add
+  apply hfa
+  apply hgb
 
-example (nnf : FnLb f 0) (nng : FnLb g 0) : FnLb (fun x ↦ f x * g x) 0 :=
-  sorry
+#check mul_nonneg
+
+example (nnf : FnLb f 0) (nng : FnLb g 0) : FnLb (fun x ↦ f x * g x) 0 := by
+  intro x
+  dsimp
+  exact mul_nonneg (nnf x) (nng x)
 
 example (hfa : FnUb f a) (hgb : FnUb g b) (nng : FnLb g 0) (nna : 0 ≤ a) :
     FnUb (fun x ↦ f x * g x) (a * b) :=
