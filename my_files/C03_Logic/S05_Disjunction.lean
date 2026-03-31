@@ -21,6 +21,9 @@ example (h : y > 0) : y > 0 ∨ y < -1 :=
 example (h : y < -1) : y > 0 ∨ y < -1 :=
   Or.inr h
 
+#print le_or_gt
+#print abs_of_nonneg
+
 example : x < |y| → x < y ∨ x < -y := by
   rcases le_or_gt 0 y with h | h
   · rw [abs_of_nonneg h]
@@ -57,11 +60,20 @@ example : x < |y| → x < y ∨ x < -y := by
 
 namespace MyAbs
 
+#print le_neg
+#print neg_pos
+
 theorem le_abs_self (x : ℝ) : x ≤ |x| := by
-  sorry
+  rcases le_or_gt 0 x with h | h
+  · rw [abs_of_nonneg h]
+  · rw [abs_of_neg h]
+    linarith
 
 theorem neg_le_abs_self (x : ℝ) : -x ≤ |x| := by
-  sorry
+  rcases le_or_gt 0 x with h | h
+  · rw [abs_of_nonneg h]
+    linarith
+  · rw [abs_of_neg h]
 
 theorem abs_add (x y : ℝ) : |x + y| ≤ |x| + |y| := by
   sorry
@@ -125,4 +137,3 @@ example (P : Prop) : ¬¬P → P := by
 
 example (P Q : Prop) : P → Q ↔ ¬P ∨ Q := by
   sorry
-

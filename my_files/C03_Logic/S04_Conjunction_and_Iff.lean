@@ -189,21 +189,24 @@ variable (a b : α)
 
 #print lt_iff_le_not_ge
 #print le_of_eq
+#print ne_of_not_le
+#print not_le
 
 example : a < b ↔ a ≤ b ∧ a ≠ b := by
   rw [lt_iff_le_not_ge]
   constructor
+  · rintro ⟨h₁, h₂⟩
+    constructor
+    · assumption
+    · intro h₃
+      apply h₂
+      rw[h₃]
   · rintro ⟨h₁,h₂⟩
     constructor
-    · exact h₁
-    · by_contra h₃
-      have h₃ : b ≤ a := by
-        apply symm
-        apply le_of_eq
-        apply
-      contradiction
-
-  sorry
+    · assumption
+    · intro h₃
+      apply h₂
+      apply le_antisymm h₁ h₃
 
 end
 
@@ -213,10 +216,18 @@ variable (a b c : α)
 
 example : ¬a < a := by
   rw [lt_iff_le_not_ge]
-  sorry
+  push_neg
+  intro h
+  assumption
 
 example : a < b → b < c → a < c := by
   simp only [lt_iff_le_not_ge]
-  sorry
+  rintro ⟨h₁,h₂⟩
+  rintro ⟨h₃,h₄⟩
+  constructor
+  · apply le_trans h₁ h₃
+  · intro h₅
+    apply h₂
+    apply le_trans h₃ h₅
 
 end
