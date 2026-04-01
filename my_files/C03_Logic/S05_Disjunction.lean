@@ -75,11 +75,25 @@ theorem neg_le_abs_self (x : ℝ) : -x ≤ |x| := by
     linarith
   · rw [abs_of_neg h]
 
+
 theorem abs_add (x y : ℝ) : |x + y| ≤ |x| + |y| := by
-  sorry
+  rcases le_or_gt 0 (x + y) with h | h
+  · rw[abs_of_nonneg h]
+    linarith[le_abs_self x, le_abs_self y]
+  · rw[abs_of_neg h]
+    linarith[neg_le_abs_self x, neg_le_abs_self y]
 
 theorem lt_abs : x < |y| ↔ x < y ∨ x < -y := by
-  sorry
+  constructor
+  rcases le_or_gt 0 y with h | h
+  · intro h₁
+    left
+    linarith [abs_of_nonneg h]
+  · intro h₁
+    right
+    linarith [abs_of_neg h]
+  · intro h₂
+    rcases le_or_gt 0 y with h | h
 
 theorem abs_lt : |x| < y ↔ -y < x ∧ x < y := by
   sorry
