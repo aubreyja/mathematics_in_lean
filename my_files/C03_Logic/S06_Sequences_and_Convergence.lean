@@ -95,6 +95,8 @@ example {s : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) :
   _≤ |s n - a| + |a| := by apply abs_add
   _<  |a| + 1 := by linarith[h n nge]
 
+#check mul_lt_of_mul_lt_of_nonneg_left
+
 theorem aux {s t : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) (ct : ConvergesTo t 0) :
     ConvergesTo (fun n ↦ s n * t n) 0 := by
   intro ε εpos
@@ -103,7 +105,20 @@ theorem aux {s t : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) (ct : Converges
   have Bpos : 0 < B := lt_of_le_of_lt (abs_nonneg _) (h₀ N₀ (le_refl _))
   have pos₀ : ε / B > 0 := div_pos εpos Bpos
   rcases ct _ pos₀ with ⟨N₁, h₁⟩
-  sorry
+  use max N₀ N₁
+  intro n nge
+  have ngeN₀ : n ≥ N₀ := by
+    exact le_of_max_le_left nge
+  have ngeN₁ : n ≥ N₁ := by
+    exact le_of_max_le_right nge
+  have hs : |s n| ≤ B := le_of_lt (h₀ n ngeN₀)
+  have ht : |t n - 0| ≤  ε / B := le_of_lt (h₁ n ngeN₁)
+  have Bnonneg : 0 ≤ B := le_of_lt Bpos
+  calc
+  |s n * t n - 0| = |s n * (t n - 0)| := by congr; ring
+  _≤ |s n| * |t n - 0| := by rw[abs_mul]
+  _< B * (ε / B) := by apply mul_lt_mul (h₀ n ngeN₀) ht
+
 
 theorem convergesTo_mul {s t : ℕ → ℝ} {a b : ℝ}
       (cs : ConvergesTo s a) (ct : ConvergesTo t b) :
