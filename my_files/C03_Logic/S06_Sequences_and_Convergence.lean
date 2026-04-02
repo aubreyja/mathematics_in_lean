@@ -35,7 +35,18 @@ theorem convergesTo_add {s t : ℕ → ℝ} {a b : ℝ}
   rcases cs (ε / 2) ε2pos with ⟨Ns, hs⟩
   rcases ct (ε / 2) ε2pos with ⟨Nt, ht⟩
   use max Ns Nt
-  sorry
+  intro n nge
+  have ngeNs : Ns ≤ n := by apply le_of_max_le_left; exact nge
+  have ngeNt : Nt ≤ n := by
+    apply le_of_max_le_right
+    exact nge
+  calc
+  |s n + t n - (a + b)| = |(s n - a) + (t n - b)| := by congr; ring
+  _ ≤ |s n - a| + |t n - b| := by apply abs_add
+  _ < (ε / 2) + (ε / 2) := by apply add_lt_add (hs n ngeNs) (ht n ngeNt)
+  _ = ε := by ring
+
+#print abs_mul
 
 theorem convergesTo_mul_const {s : ℕ → ℝ} {a : ℝ} (c : ℝ) (cs : ConvergesTo s a) :
     ConvergesTo (fun n ↦ c * s n) (c * a) := by
@@ -46,13 +57,43 @@ theorem convergesTo_mul_const {s : ℕ → ℝ} {a : ℝ} (c : ℝ) (cs : Conver
     rw [h]
     ring
   have acpos : 0 < |c| := abs_pos.mpr h
-  sorry
+  intro ε εpos
+  dsimp
+  have edivc : 0 < ε / |c| := by apply div_pos εpos acpos
+  rcases cs (ε / |c|) edivc with ⟨Nc, hc⟩
+  use Nc
+  intro n nge
+  calc
+  |c * s n - c * a| = |c * (s n - a)| := by rw[← mul_sub]
+  _ = |c| * |s n - a| := by rw[abs_mul]
+  _ < |c| * (ε / |c|) := by exact (mul_lt_mul_left acpos).mpr (hc n nge)
+  _ = ε := by apply mul_div_cancel₀ _ (ne_of_lt acpos).symm
 
 theorem exists_abs_le_of_convergesTo {s : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) :
     ∃ N b, ∀ n, N ≤ n → |s n| < b := by
   rcases cs 1 zero_lt_one with ⟨N, h⟩
   use N, |a| + 1
-  sorry
+  intro n nge
+  calc
+  |s n| =|s n + 0| := by rw[add_zero]
+  _= |s n + (a - a)| := by rw[← sub_self]
+  _= |s n + (a + -a)| := by rw[← sub_eq_add_neg]
+  _= |s n + (-a + a)| := by nth_rw 2 [add_comm]
+  _= |(s n + -a) + a| := by rw[← add_assoc]
+  _= |(s n - a) + a| := by rw[sub_eq_add_neg]
+  _≤ |s n - a| + |a| := by apply abs_add
+  _= |a| + |s n - a| := by rw[add_comm]
+  _<  |a| + 1 := by linarith[h n nge]
+
+example {s : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) :
+    ∃ N b, ∀ n, N ≤ n → |s n| < b := by
+  rcases cs 1 zero_lt_one with ⟨N, h⟩
+  use N, |a| + 1
+  intro n nge
+  calc
+  |s n| = |(s n - a) + a| := by congr; abel
+  _≤ |s n - a| + |a| := by apply abs_add
+  _<  |a| + 1 := by linarith[h n nge]
 
 theorem aux {s t : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) (ct : ConvergesTo t 0) :
     ConvergesTo (fun n ↦ s n * t n) 0 := by
@@ -100,4 +141,3 @@ def ConvergesTo' (s : α → ℝ) (a : ℝ) :=
   ∀ ε > 0, ∃ N, ∀ n ≥ N, |s n - a| < ε
 
 end
-
