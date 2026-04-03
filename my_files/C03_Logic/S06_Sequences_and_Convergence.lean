@@ -96,6 +96,7 @@ example {s : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) :
   _<  |a| + 1 := by linarith[h n nge]
 
 #check mul_lt_of_mul_lt_of_nonneg_left
+#check mul_lt_mul''
 
 theorem aux {s t : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) (ct : ConvergesTo t 0) :
     ConvergesTo (fun n ↦ s n * t n) 0 := by
@@ -111,13 +112,11 @@ theorem aux {s t : ℕ → ℝ} {a : ℝ} (cs : ConvergesTo s a) (ct : Converges
     exact le_of_max_le_left nge
   have ngeN₁ : n ≥ N₁ := by
     exact le_of_max_le_right nge
-  have hs : |s n| ≤ B := le_of_lt (h₀ n ngeN₀)
-  have ht : |t n - 0| ≤  ε / B := le_of_lt (h₁ n ngeN₁)
   have Bnonneg : 0 ≤ B := le_of_lt Bpos
   calc
-  |s n * t n - 0| = |s n * (t n - 0)| := by congr; ring
-  _≤ |s n| * |t n - 0| := by rw[abs_mul]
-  _< B * (ε / B) := by apply mul_lt_mul (h₀ n ngeN₀) ht
+    |s n * t n - 0| = |s n| * |t n - 0| := by rw [sub_zero, abs_mul, sub_zero]
+    _ < B * (ε / B) := (mul_lt_mul'' (h₀ n ngeN₀) (h₁ n ngeN₁) (abs_nonneg _) (abs_nonneg _))
+    _ = ε := mul_div_cancel₀ _ (ne_of_lt Bpos).symm
 
 
 theorem convergesTo_mul {s t : ℕ → ℝ} {a b : ℝ}
@@ -136,7 +135,12 @@ theorem convergesTo_unique {s : ℕ → ℝ} {a b : ℝ}
       (sa : ConvergesTo s a) (sb : ConvergesTo s b) :
     a = b := by
   by_contra abne
-  have : |a - b| > 0 := by sorry
+  have : |a - b| > 0 := by
+    apply lt_of_le_of_ne
+    · apply abs_nonneg
+    intro h''
+    apply abne
+    apply eq_of_abs_sub_eq_zero h''.symm
   let ε := |a - b| / 2
   have εpos : ε > 0 := by
     change |a - b| / 2 > 0
@@ -144,9 +148,21 @@ theorem convergesTo_unique {s : ℕ → ℝ} {a b : ℝ}
   rcases sa ε εpos with ⟨Na, hNa⟩
   rcases sb ε εpos with ⟨Nb, hNb⟩
   let N := max Na Nb
-  have absa : |s N - a| < ε := by sorry
-  have absb : |s N - b| < ε := by sorry
-  have : |a - b| < |a - b| := by sorry
+  have absa : |s N - a| < ε := by
+    apply hNa
+    exact le_max_left Na Nb
+  have absb : |s N - b| < ε := by
+    apply hNb
+    exact le_max_right Na Nb
+  have : |a - b| < |a - b| := by
+    calc
+      |a - b| = |(-(s N - a)) + (s N - b)| := by
+        congr
+        ring
+      _ ≤ |(-(s N - a))| + |s N - b| := (abs_add _ _)
+      _ = |s N - a| + |s N - b| := by rw [abs_neg]
+      _ < ε + ε := (add_lt_add absa absb)
+      _ = |a - b| := by norm_num [ε]
   exact lt_irrefl _ this
 
 section
