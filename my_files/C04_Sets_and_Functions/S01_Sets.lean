@@ -44,7 +44,16 @@ example : s ∩ (t ∪ u) ⊆ s ∩ t ∪ s ∩ u := by
   · right; exact ⟨xs, xu⟩
 
 example : s ∩ t ∪ s ∩ u ⊆ s ∩ (t ∪ u) := by
-  sorry
+  rintro x (h₁|h₂)
+  constructor
+  exact h₁.left
+  left
+  exact h₁.right
+  constructor
+  exact h₂.left
+  right
+  exact h₂.right
+
 example : (s \ t) \ u ⊆ s \ (t ∪ u) := by
   intro x xstu
   have xs : x ∈ s := xstu.1.1
@@ -63,8 +72,21 @@ example : (s \ t) \ u ⊆ s \ (t ∪ u) := by
   use xs
   rintro (xt | xu) <;> contradiction
 
+#check mem_diff
+
 example : s \ (t ∪ u) ⊆ (s \ t) \ u := by
-  sorry
+  rintro x ⟨xs,xntu⟩
+  constructor
+  have xnt : x ∉ t := by
+    intro h
+    apply xntu
+    exact Or.inl h
+  exact ⟨xs,xnt⟩
+  intro xu
+  apply xntu
+  exact Or.inr xu
+
+
 example : s ∩ t = t ∩ s := by
   ext x
   simp only [mem_inter_iff]
@@ -83,7 +105,10 @@ example : s ∩ t = t ∩ s := by
   · rintro x ⟨xt, xs⟩; exact ⟨xs, xt⟩
 
 example : s ∩ t = t ∩ s :=
-    Subset.antisymm sorry sorry
+    Subset.antisymm
+    (fun _ ⟨xs,xt⟩ ↦ ⟨xt,xs⟩)
+    fun _ ⟨xt,xs⟩ ↦ ⟨xs,xt⟩
+
 example : s ∩ (s ∪ t) = s := by
   sorry
 
@@ -235,4 +260,3 @@ example : ⋂₀ s = ⋂ t ∈ s, t := by
   rfl
 
 end
-
