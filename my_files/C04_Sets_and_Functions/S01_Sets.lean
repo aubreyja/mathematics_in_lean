@@ -110,16 +110,46 @@ example : s ∩ t = t ∩ s :=
     fun _ ⟨xt,xs⟩ ↦ ⟨xs,xt⟩
 
 example : s ∩ (s ∪ t) = s := by
-  sorry
+  apply Subset.antisymm
+  · rintro x ⟨s,sut⟩; exact s
+  · rintro x s
+    constructor
+    exact s
+    left
+    exact s
+
+example : s ∩ (s ∪ t) = s := by
+  ext x; constructor
+  · rintro ⟨xs, _⟩
+    exact xs
+  · intro xs
+    use xs; left; exact xs
 
 example : s ∪ s ∩ t = s := by
-  sorry
+  ext x; constructor
+  · rintro (xs|xst); exact xs; exact xst.1
+  · intro xs; left; exact xs
 
 example : s \ t ∪ t = s ∪ t := by
-  sorry
+  ext x; constructor
+  · rintro (⟨xs,_⟩|xt);
+    left; exact xs
+    right; exact xt
+  · rintro (xs|xt)
+    by_cases xt : x ∈ t
+    right; assumption
+    left; exact ⟨xs,xt⟩
+    right; exact xt
 
 example : s \ t ∪ t \ s = (s ∪ t) \ (s ∩ t) := by
-  sorry
+  ext x; constructor
+  · rintro (⟨xs,xnt⟩|⟨xt,xns⟩)
+    constructor
+    left; assumption
+    rintro ⟨xs,xt⟩; contradiction
+    constructor
+    right; assumption
+    rintro ⟨xs,xt⟩; contradiction
 
 def evens : Set ℕ :=
   { n | Even n }
@@ -139,8 +169,18 @@ example (x : ℕ) (h : x ∈ (∅ : Set ℕ)) : False :=
 example (x : ℕ) : x ∈ (univ : Set ℕ) :=
   trivial
 
+#print Nat.Prime.eq_two_or_odd
+#print Nat.odd_iff
+#print
+
 example : { n | Nat.Prime n } ∩ { n | n > 2 } ⊆ { n | ¬Even n } := by
-  sorry
+  intro n
+  simp
+  intro nprime n_gt
+  rcases Nat.Prime.eq_two_or_odd nprime with h | h
+  · rw[h]
+    linarith
+  · rw [Nat.odd_iff, h]
 
 #print Prime
 
@@ -176,10 +216,14 @@ section
 variable (ssubt : s ⊆ t)
 
 example (h₀ : ∀ x ∈ t, ¬Even x) (h₁ : ∀ x ∈ t, Prime x) : ∀ x ∈ s, ¬Even x ∧ Prime x := by
-  sorry
+  intro x xs
+  constructor
+  apply h₀ x (ssubt xs)
+  apply h₁ x (ssubt xs)
 
 example (h : ∃ x ∈ s, ¬Even x ∧ Prime x) : ∃ x ∈ t, Prime x := by
-  sorry
+  rcases h with ⟨x, xs, neven_x, prime_x⟩
+  use x, ssubt xs
 
 end
 
@@ -192,33 +236,57 @@ variable (s : Set α)
 
 open Set
 
+#check mem_inter_iff
+#check mem_iUnion
+
 example : (s ∩ ⋃ i, A i) = ⋃ i, A i ∩ s := by
-  ext x
-  simp only [mem_inter_iff, mem_iUnion]
-  constructor
-  · rintro ⟨xs, ⟨i, xAi⟩⟩
-    exact ⟨i, xAi, xs⟩
-  rintro ⟨i, xAi, xs⟩
-  exact ⟨xs, ⟨i, xAi⟩⟩
+-- This says s intersect the union equals the union of (Ai ∪ s)
+  ext x --extentionality
+  simp only [mem_inter_iff, mem_iUnion] --int iff in both and in a union if in one
+  constructor --prove one direction then the other
+  · rintro ⟨xs, ⟨i, xAi⟩⟩ --x ∈ s and exists i st x in Ai
+    exact ⟨i, xAi, xs⟩ -- exactly for that Ai int with s witnesses rhs
+  rintro ⟨i, xAi, xs⟩ --set up a witness for rhs
+  exact ⟨xs, ⟨i, xAi⟩⟩ --rearrange
+
+#check mem_iInter
 
 example : (⋂ i, A i ∩ B i) = (⋂ i, A i) ∩ ⋂ i, B i := by
-  ext x
-  simp only [mem_inter_iff, mem_iInter]
-  constructor
-  · intro h
-    constructor
-    · intro i
-      exact (h i).1
-    intro i
-    exact (h i).2
-  rintro ⟨h1, h2⟩ i
+  ext x --extensionality
+  simp only [mem_inter_iff, mem_iInter] --expand deffs
+  constructor --prove both directions
+  · intro h --hypothesis for L->R
+    constructor --need to prove an and, so set that up here
+    · intro i --specialize the hypothesis h for arbitrary i
+      exact (h i).1 --x is in Ai for any i
+    intro i --specialize again
+    exact (h i).2 --now x is in Bi
+  rintro ⟨h1, h2⟩ i --let's go the other way
   constructor
   · exact h1 i
   exact h2 i
 
 
 example : (s ∪ ⋂ i, A i) = ⋂ i, A i ∪ s := by
-  sorry
+  ext x --extensionality
+  simp only [mem_union, mem_iInter]
+  constructor
+  · rintro (xs|xAI)
+    · intro i
+      right
+      exact xs
+    intro i
+    left
+    exact xAI i
+  intro h
+  by_cases xs : x ∈ s
+  left; assumption
+  right
+  intro i
+  cases h i
+  assumption
+  contradiction
+
 
 def primes : Set ℕ :=
   { x | Nat.Prime x }
@@ -238,8 +306,18 @@ example : (⋂ p ∈ primes, { x | ¬p ∣ x }) ⊆ { x | x = 1 } := by
   simp
   apply Nat.exists_prime_and_dvd
 
+#check eq_univ_of_forall
+#check Nat.exists_infinite_primes
+
 example : (⋃ p ∈ primes, { x | x ≤ p }) = univ := by
-  sorry
+  apply eq_univ_of_forall
+  simp
+  intro x
+  rcases Nat.exists_infinite_primes x with ⟨i, hix, hiPrime⟩
+  use i
+  constructor
+  exact hiPrime
+  exact hix
 
 end
 
