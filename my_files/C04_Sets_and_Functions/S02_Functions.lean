@@ -33,8 +33,20 @@ example : s ⊆ f ⁻¹' (f '' s) := by
   show f x ∈ f '' s
   use x, xs
 
+--x ∈ f⁻¹'p means f x ∈ p (can use rfl). y ∈ f'' s decomposes to ⟨ x, xs, xeq ⟩ with
+-- x : α satisfying xs : x ∈ s and xeq : f x = y (can use rfl in rintro to rw xeq)
+
 example : f '' s ⊆ v ↔ s ⊆ f ⁻¹' v := by
-  sorry
+  constructor
+  intro h x xs
+  have h₁ : f x ∈ f '' s := by exact mem_image_of_mem f xs
+  have h₂ : f x ∈ v := by exact h h₁
+  exact h₂
+--or exact h (mem_image_of_mem f xs)
+  intro h y ymem
+  rcases ymem with ⟨x, xs, fxeq⟩
+  rw[← fxeq]
+  apply h xs
 
 example (h : Injective f) : f ⁻¹' (f '' s) ⊆ s := by
   sorry
