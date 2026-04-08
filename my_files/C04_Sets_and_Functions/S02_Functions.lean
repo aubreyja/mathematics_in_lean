@@ -49,22 +49,85 @@ example : f '' s ⊆ v ↔ s ⊆ f ⁻¹' v := by
   apply h xs
 
 example (h : Injective f) : f ⁻¹' (f '' s) ⊆ s := by
-  sorry
+  intro x h₁
+  rcases h₁ with ⟨y,ys,hy⟩
+  have  h₂: y = x := by apply h hy
+  rw[h₂] at ys
+  exact ys
+
+example (h : Injective f) : f ⁻¹' (f '' s) ⊆ s := by
+  intro x h₁
+  rcases h₁ with ⟨y,ys,hy⟩
+  rw[h hy] at ys
+  exact ys
+
+example (h : Injective f) : f ⁻¹' (f '' s) ⊆ s := by
+  intro x h₁
+  rcases h₁ with ⟨y,ys,hy⟩
+  simpa [h hy] using ys
 
 example : f '' (f ⁻¹' u) ⊆ u := by
-  sorry
+  intro y hy
+  rcases hy with ⟨x,xfu,rfl⟩
+  exact xfu
 
 example (h : Surjective f) : u ⊆ f '' (f ⁻¹' u) := by
-  sorry
+  intro y hy
+  rcases h y with ⟨x,rfl⟩
+  simp
+  use x
+
+  example (h : Surjective f) : u ⊆ f '' (f ⁻¹' u) := by
+  intro y hy
+  rcases h y with ⟨x, rfl⟩
+  use x
+  constructor
+  · exact hy
+  · rfl
 
 example (h : s ⊆ t) : f '' s ⊆ f '' t := by
-  sorry
+  intro y hy
+  rcases hy with ⟨x,xs,fxeqy⟩
+  use x
+  constructor
+  · exact h xs
+  · exact fxeqy
 
 example (h : u ⊆ v) : f ⁻¹' u ⊆ f ⁻¹' v := by
-  sorry
+  intro x hx
+  exact h hx
 
 example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v := by
-  sorry
+  ext x
+  constructor
+  intro h₁
+  rcases h₁ with (xfu|xfv)
+  left
+  exact xfu
+  right
+  exact xfv
+  intro h₂
+  rcases h₂ with (xfu|xfv)
+  left
+  exact xfu
+  right
+  exact xfv
+
+example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v := by
+  ext x
+  constructor
+  · intro h
+    rcases h with h | h
+    · exact Or.inl h
+    · exact Or.inr h
+  · intro h
+    rcases h with h | h
+    · exact Or.inl h
+    · exact Or.inr h
+
+example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v := by
+  ext x
+  simp
 
 example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t := by
   sorry
