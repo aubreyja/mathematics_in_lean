@@ -130,25 +130,89 @@ example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v := by
   simp
 
 example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t := by
-  sorry
+  intro y h
+  rcases h with ⟨x,xst,rfl⟩
+  rcases xst with ⟨xs,xt⟩
+  constructor
+  use x
+  use x
+
+example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t := by
+  rintro y ⟨x, ⟨xs, xt⟩, rfl⟩
+  constructor
+  · exact ⟨x, xs, rfl⟩
+  · exact ⟨x, xt, rfl⟩
+
+example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t := by
+  intro y h
+  rcases h with ⟨x, hx, rfl⟩
+  rcases hx with ⟨xs, xt⟩
+  constructor
+  · exact ⟨x, xs, rfl⟩
+  · exact ⟨x, xt, rfl⟩
 
 example (h : Injective f) : f '' s ∩ f '' t ⊆ f '' (s ∩ t) := by
-  sorry
+  intro y ⟨⟨x₁,x₁s,fx₁y⟩,⟨x₂,x₂t,fx₂y⟩⟩
+  have h₁ : f x₁ = f x₂ := by
+   calc
+   f x₁ = y := by exact fx₁y
+   _ = f x₂ := by exact fx₂y.symm
+  have h₂ : x₁ = x₂ := by apply h h₁
+  use x₁
+  constructor
+  constructor
+  exact x₁s
+  simpa[h₂]
+  exact fx₁y
+
+example (h : Injective f) : f '' s ∩ f '' t ⊆ f '' (s ∩ t) := by
+  rintro y ⟨⟨x₁, x₁s, fx₁y⟩, ⟨x₂, x₂t, fx₂y⟩⟩
+  have h₁ : f x₁ = f x₂ := by
+    calc
+      f x₁ = y := fx₁y
+      _ = f x₂ := fx₂y.symm
+  have h₂ : x₁ = x₂ := h h₁
+  exact ⟨x₁, ⟨x₁s, by simpa [h₂] using x₂t⟩, fx₁y⟩
 
 example : f '' s \ f '' t ⊆ f '' (s \ t) := by
-  sorry
+  rintro y ⟨⟨x,xs,fxy⟩,ynft⟩
+  have xnt : x ∉ t := by
+    intro xt
+    simp[fxy] at ynft
+    apply ynft x
+    exact xt
+    exact fxy
+  have h₁ : x ∈ s\t := by
+    exact ⟨xs,xnt⟩
+  simp
+  use x
+
+example : f '' s \ f '' t ⊆ f '' (s \ t) := by
+  rintro y ⟨⟨x, xs, rfl⟩, hy⟩
+  refine ⟨x, ⟨xs, ?_⟩, rfl⟩
+  intro xt
+  apply hy
+  exact ⟨x, xt, rfl⟩
 
 example : f ⁻¹' u \ f ⁻¹' v ⊆ f ⁻¹' (u \ v) := by
-  sorry
+  rintro x ⟨pfu,npfv⟩
+  exact ⟨pfu,npfv⟩
 
 example : f '' s ∩ v = f '' (s ∩ f ⁻¹' v) := by
-  sorry
+  ext y
+  constructor
+  rintro ⟨⟨x,xs,rfl⟩, hyv⟩
+  exact ⟨x,⟨xs,hyv⟩,rfl⟩
+  rintro ⟨x,⟨xs,hyv⟩,rfl⟩
+  exact ⟨⟨x,xs,rfl⟩, hyv⟩
 
 example : f '' (s ∩ f ⁻¹' u) ⊆ f '' s ∩ u := by
-  sorry
+  rintro y ⟨x,⟨xs,fxu⟩,rfl⟩
+  exact ⟨⟨x,xs,rfl⟩ ,fxu⟩
 
 example : s ∩ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∩ u) := by
-  sorry
+  rintro x ⟨hxs,hfxu⟩
+  --exact
 
 example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
   sorry
