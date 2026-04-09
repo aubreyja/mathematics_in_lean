@@ -212,15 +212,31 @@ example : f '' (s ∩ f ⁻¹' u) ⊆ f '' s ∩ u := by
 
 example : s ∩ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∩ u) := by
   rintro x ⟨hxs,hfxu⟩
-  --exact
+  exact ⟨⟨x,hxs,rfl⟩,hfxu⟩
 
 example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
-  sorry
+  rintro x (xs|fxu)
+  exact Or.inl ⟨x,xs,rfl⟩; exact Or.inr fxu
+
+  example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
+  rintro x (xs | fxu)
+  · simp
+    exact Or.inl ⟨x, xs, rfl⟩
+  · simp
+    exact Or.inr fxu
+
+example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
+  rintro x (xs | fxu)
+  · simp [xs, mem_image_of_mem f]
+  · simp [fxu]
 
 variable {I : Type*} (A : I → Set α) (B : I → Set β)
 
 example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
-  sorry
+  ext y; constructor
+  rintro ⟨x, ⟨j,xAj⟩ , rfl⟩
+  rw[mem_iUnion]
+  exact ⟨j,⟨x,xAj,rfl⟩⟩
 
 example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
   sorry
