@@ -239,7 +239,8 @@ example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
   exact ⟨j,⟨x,xAj,rfl⟩⟩
 
 example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
-  sorry
+  intro y ⟨x,xiInt,hx⟩
+  rw [mem_iInter] at xiInt
 
 example (i : I) (injf : Injective f) : (⋂ i, f '' A i) ⊆ f '' ⋂ i, A i := by
   sorry
