@@ -234,13 +234,15 @@ variable {I : Type*} (A : I → Set α) (B : I → Set β)
 
 example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
   ext y; constructor
-  rintro ⟨x, ⟨j,xAj⟩ , rfl⟩
+  rintro ⟨x, ⟨j,xAj⟩, rfl⟩
   rw[mem_iUnion]
-  exact ⟨j,⟨x,xAj,rfl⟩⟩
+  --exact ⟨j,⟨x,xAj,rfl⟩⟩
 
 example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
   intro y ⟨x,xiInt,hx⟩
   rw [mem_iInter] at xiInt
+  simp
+  intro i
 
 example (i : I) (injf : Injective f) : (⋂ i, f '' A i) ⊆ f '' ⋂ i, A i := by
   sorry
