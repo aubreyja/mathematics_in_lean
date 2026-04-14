@@ -233,19 +233,45 @@ example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
 variable {I : Type*} (A : I → Set α) (B : I → Set β)
 
 example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
-  ext y; constructor
-  rintro ⟨x, ⟨j,xAj⟩, rfl⟩
-  rw[mem_iUnion]
-  --exact ⟨j,⟨x,xAj,rfl⟩⟩
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    rw [mem_iUnion] at hx
+    rcases hx with ⟨i, hxi⟩
+    rw [mem_iUnion]
+    exact ⟨i, ⟨x, hxi, rfl⟩⟩
+  · intro hy
+    rw [mem_iUnion] at hy
+    rcases hy with ⟨i, hyi⟩
+    rcases hyi with ⟨x, hxi, rfl⟩
+    refine ⟨x, ?_, rfl⟩
+    rw [mem_iUnion]
+    exact ⟨i, hxi⟩
+
+example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
+  ext y; simp
+  constructor
+  · rintro ⟨x, ⟨i, xAi⟩, fxeq⟩
+    use i, x
+  rintro ⟨i, x, xAi, fxeq⟩
+  exact ⟨x, ⟨i, xAi⟩, fxeq⟩
 
 example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
-  intro y ⟨x,xiInt,hx⟩
-  rw [mem_iInter] at xiInt
-  simp
+  intro y hy
+  rcases hy with ⟨x,hy,rfl⟩
+  rw[mem_iInter] at *
   intro i
+  exact ⟨x, hy i, rfl⟩
+
+example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
+  intro y; simp
+  intro x h fxeq i
+  use x
+  exact ⟨h i, fxeq⟩
 
 example (i : I) (injf : Injective f) : (⋂ i, f '' A i) ⊆ f '' ⋂ i, A i := by
-  sorry
+  intro y hy; simp
+  rw[mem_iInter] at hy
 
 example : (f ⁻¹' ⋃ i, B i) = ⋃ i, f ⁻¹' B i := by
   sorry
