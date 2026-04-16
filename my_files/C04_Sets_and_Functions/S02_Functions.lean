@@ -361,7 +361,13 @@ example : (range fun x ↦ x ^ 2) = { y : ℝ | y ≥ 0 } := by
   ext y
   constructor
   simp at *
+  intro x h
+  rw[← h]
+  exact sq_nonneg x
+  simp at *
   intro h
+  use √y
+  exact sq_sqrt h
 
 end
 
@@ -392,11 +398,55 @@ variable (f : α → β)
 
 open Function
 
-example : Injective f ↔ LeftInverse (inverse f) f :=
-  sorry
+example : Injective f ↔ LeftInverse (inverse f) f := by
+  constructor
+  intro h
+  rw[LeftInverse]
+  intro x
+  rw[inverse]
+  have h₁ : ∃ x_1, f x_1 = f x := ⟨x, rfl⟩
+  rw[dif_pos h₁]
+  exact h (Classical.choose_spec h₁)
+  intro h
+  rw[LeftInverse] at h
+  intro a b hab
+  calc
+  a = inverse f (f a) := by rw[h a]
+  _= inverse f (f b) := by rw[hab]
+  _= b := by exact h b
 
-example : Surjective f ↔ RightInverse (inverse f) f :=
-  sorry
+
+example : Injective f ↔ LeftInverse (inverse f) f := by
+  constructor
+  · intro h y
+    apply h
+    apply inverse_spec
+    use y
+  intro h x1 x2 e
+  rw [← h x1, ← h x2, e]
+
+example : Injective f ↔ LeftInverse (inverse f) f :=
+  ⟨fun h y ↦ h (inverse_spec _ ⟨y, rfl⟩), fun h x1 x2 e ↦ by rw [← h x1, ← h x2, e]⟩
+
+example : Surjective f ↔ RightInverse (inverse f) f := by
+  constructor
+  intro h y
+  apply inverse_spec
+  apply h
+  intro h y
+  rw[RightInverse] at h
+  rw[LeftInverse] at h
+  use inverse f y
+  apply h
+
+example : Surjective f ↔ RightInverse (inverse f) f := by
+  constructor
+  · intro h y
+    apply inverse_spec
+    apply h
+  intro h y
+  use inverse f y
+  apply h
 
 end
 
@@ -412,10 +462,10 @@ theorem Cantor : ∀ f : α → Set α, ¬Surjective f := by
     intro h'
     have : j ∉ f j := by rwa [h] at h'
     contradiction
-  have h₂ : j ∈ S
-  sorry
-  have h₃ : j ∉ S
-  sorry
+  have h₂ : j ∈ S := by
+    apply h₁
+  have h₃ : j ∉ S := by
+    rwa[← h]
   contradiction
 
 -- COMMENTS: TODO: improve this
