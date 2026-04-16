@@ -270,14 +270,26 @@ example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
   exact ⟨h i, fxeq⟩
 
 example (i : I) (injf : Injective f) : (⋂ i, f '' A i) ⊆ f '' ⋂ i, A i := by
-  intro y hy; simp
-  rw[mem_iInter] at hy
+  intro y; simp
+  intro h
+  rcases h i with ⟨x, xAi, fxeq⟩
+  use x
+  constructor
+  · intro i'
+    rcases h i' with ⟨x', xAi', fxeq'⟩
+    have: f x = f x' := by rw[fxeq,fxeq']
+    have: x = x' := by apply injf this
+    rw[this]
+    exact xAi'
+  exact fxeq
 
 example : (f ⁻¹' ⋃ i, B i) = ⋃ i, f ⁻¹' B i := by
-  sorry
+  ext x
+  simp
 
 example : (f ⁻¹' ⋂ i, B i) = ⋂ i, f ⁻¹' B i := by
-  sorry
+  ext x
+  simp
 
 example : InjOn f s ↔ ∀ x₁ ∈ s, ∀ x₂ ∈ s, f x₁ = f x₂ → x₁ = x₂ :=
   Iff.refl _
@@ -297,6 +309,7 @@ example : InjOn log { x | x > 0 } := by
     _ = exp (log y) := by rw [e]
     _ = y := by rw [exp_log ypos]
 
+#check sqrt_eq_iff_eq_sq
 
 example : range exp = { y | y > 0 } := by
   ext y; constructor
@@ -307,16 +320,48 @@ example : range exp = { y | y > 0 } := by
   rw [exp_log ypos]
 
 example : InjOn sqrt { x | x ≥ 0 } := by
-  sorry
+  intro x xnneg y ynneg
+  intro h
+  calc
+  x = (√x) ^ 2 := by rw[sq_sqrt xnneg]
+  _=(√y) ^ 2 := by rw[h]
+  _= y := by rw[sq_sqrt ynneg]
 
 example : InjOn (fun x ↦ x ^ 2) { x : ℝ | x ≥ 0 } := by
-  sorry
+  intro x xnneg y ynneg
+  intro h
+  simp at h
+  calc
+  x = √(x ^ 2) := by rw[sqrt_sq xnneg]
+  _=√(y ^ 2) := by rw[h]
+  _= y := by rw[sqrt_sq ynneg]
+
+
+#check sqrt_nonneg
+#check sqrt_sq
 
 example : sqrt '' { x | x ≥ 0 } = { y | y ≥ 0 } := by
-  sorry
+  ext y; constructor
+  · intro h
+    rcases h with ⟨x,hx,fxeq⟩
+    simp
+    calc
+    0 ≤ √x := by apply sqrt_nonneg
+    _= y := fxeq
+  · intro h
+    simp
+    use y^2
+    simp at h
+    constructor
+    exact sq_nonneg y
+    apply sqrt_sq
+    exact h
 
 example : (range fun x ↦ x ^ 2) = { y : ℝ | y ≥ 0 } := by
-  sorry
+  ext y
+  constructor
+  simp at *
+  intro h
 
 end
 
