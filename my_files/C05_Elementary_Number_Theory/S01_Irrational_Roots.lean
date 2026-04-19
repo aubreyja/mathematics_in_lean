@@ -52,19 +52,49 @@ example (a b c : Nat) (h : a * b = a * c) (h' : a ≠ 0) : b = c :=
 example {m n : ℕ} (coprime_mn : m.Coprime n) : m ^ 2 ≠ 2 * n ^ 2 := by
   intro sqr_eq
   have : 2 ∣ m := by
-    sorry
+    apply even_of_even_sqr
+    rw[sqr_eq]
+    apply dvd_mul_right
+  obtain ⟨k, meq⟩ := dvd_iff_exists_eq_mul_left.mp this
+  have : 2 * (2 * k ^ 2) = 2 * n ^ 2 := by
+    rw [← sqr_eq, meq]
+    ring
+  have : 2 * k ^ 2 = n ^ 2 := (mul_right_inj' two_ne_zero).mp this
+  have : 2 ∣ n := by
+    apply even_of_even_sqr
+    rw[← this]
+    apply dvd_mul_right
+  have : 2 ∣ m.gcd n := by
+    apply Nat.dvd_gcd <;>
+    assumption
+  have : 2 ∣ 1 := by
+    rw[coprime_mn] at this
+    assumption
+  norm_num at this
+
+  example {m n : ℕ} (coprime_mn : m.Coprime n) : m ^ 2 ≠ 2 * n ^ 2 := by
+  intro sqr_eq
+  have : 2 ∣ m := by
+    apply even_of_even_sqr
+    rw [sqr_eq]
+    apply dvd_mul_right
   obtain ⟨k, meq⟩ := dvd_iff_exists_eq_mul_left.mp this
   have : 2 * (2 * k ^ 2) = 2 * n ^ 2 := by
     rw [← sqr_eq, meq]
     ring
   have : 2 * k ^ 2 = n ^ 2 :=
-    sorry
+    (mul_right_inj' (by norm_num)).mp this
   have : 2 ∣ n := by
-    sorry
+    apply even_of_even_sqr
+    rw [← this]
+    apply dvd_mul_right
   have : 2 ∣ m.gcd n := by
-    sorry
+    apply Nat.dvd_gcd <;>
+    assumption
   have : 2 ∣ 1 := by
-    sorry
+    convert this
+    symm
+    exact coprime_mn
   norm_num at this
 
 example {m n p : ℕ} (coprime_mn : m.Coprime n) (prime_p : p.Prime) : m ^ 2 ≠ p * n ^ 2 := by
@@ -117,4 +147,3 @@ example {m n k r : ℕ} (nnz : n ≠ 0) (pow_eq : m ^ k = r * n ^ k) {p : ℕ} :
   sorry
 
 #check multiplicity
-
