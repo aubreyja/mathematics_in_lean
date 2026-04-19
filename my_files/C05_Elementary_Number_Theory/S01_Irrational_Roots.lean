@@ -98,7 +98,73 @@ example {m n : ℕ} (coprime_mn : m.Coprime n) : m ^ 2 ≠ 2 * n ^ 2 := by
   norm_num at this
 
 example {m n p : ℕ} (coprime_mn : m.Coprime n) (prime_p : p.Prime) : m ^ 2 ≠ p * n ^ 2 := by
-  sorry
+  intro sqr_eq
+  have h: p ∣ m := by
+    apply prime_p.dvd_of_dvd_pow
+    rw[sqr_eq]
+    apply dvd_mul_right
+  obtain ⟨k, meq⟩ := dvd_iff_exists_eq_mul_left.mp h
+  have : p * (p * k ^ 2) = p * n ^ 2 := by
+    rw[← sqr_eq, meq]
+    ring
+  have : p * k ^ 2 = n ^ 2 :=
+    (mul_right_inj' (Nat.Prime.ne_zero prime_p)).mp this
+  have : p ∣ n := by
+    apply prime_p.dvd_of_dvd_pow
+    rw[← this]
+    apply dvd_mul_right
+  have : p ∣ m.gcd n := by
+    apply Nat.dvd_gcd <;>
+    assumption
+  have : p ∣ 1 := by
+    convert this
+    symm
+    exact coprime_mn
+  have le1: p ≤ 1 := by
+    apply Nat.le_of_dvd
+    norm_num
+    assumption
+  have ge2: 2 ≤ p := by
+    exact Nat.Prime.two_le prime_p
+  have onelttwo: 1 < 2 := by norm_num
+  have : 2 < 2 := Nat.lt_of_le_of_lt (le_trans ge2 le1) onelttwo
+  contradiction
+
+example {m n p : ℕ} (coprime_mn : m.Coprime n) (prime_p : p.Prime) : m ^ 2 ≠ p * n ^ 2 := by
+  intro sqr_eq
+  have : p ∣ m := by
+    apply prime_p.dvd_of_dvd_pow
+    rw [sqr_eq]
+    apply dvd_mul_right
+  obtain ⟨k, meq⟩ := dvd_iff_exists_eq_mul_left.mp this
+  have : p * (p * k ^ 2) = p * n ^ 2 := by
+    rw [← sqr_eq, meq]
+    ring
+  have : p * k ^ 2 = n ^ 2 := by
+    apply (mul_right_inj' _).mp this
+    exact prime_p.ne_zero
+  have : p ∣ n := by
+    apply prime_p.dvd_of_dvd_pow
+    rw [← this]
+    apply dvd_mul_right
+  have : p ∣ Nat.gcd m n := by apply Nat.dvd_gcd <;> assumption
+  have : p ∣ 1 := by
+    convert this
+    symm
+    exact coprime_mn
+  have : 2 ≤ 1 := by
+    apply prime_p.two_le.trans
+    exact Nat.le_of_dvd zero_lt_one this
+  norm_num at this
+
+#check Nat.Prime.two_le
+#check Nat.le_of_dvd
+#check Prime.dvd_of_dvd_pow
+#check dvd_def
+#check dvd_mul_right
+#check Nat.Prime.dvd_mul
+#check Nat.Prime.ne_zero
+
 #check Nat.primeFactorsList
 #check Nat.prime_of_mem_primeFactorsList
 #check Nat.prod_primeFactorsList
@@ -123,13 +189,49 @@ example {m n p : ℕ} (nnz : n ≠ 0) (prime_p : p.Prime) : m ^ 2 ≠ p * n ^ 2 
   intro sqr_eq
   have nsqr_nez : n ^ 2 ≠ 0 := by simpa
   have eq1 : Nat.factorization (m ^ 2) p = 2 * m.factorization p := by
-    sorry
+    exact factorization_pow' m 2 p
   have eq2 : (p * n ^ 2).factorization p = 2 * n.factorization p + 1 := by
-    sorry
+    calc
+    (p * n ^ 2).factorization p = p.factorization p + (n ^ 2).factorization p := by
+      apply factorization_mul'
+      exact Nat.Prime.ne_zero prime_p
+      simpa
+    _= p.factorization p + 2 * n.factorization p := by rw[factorization_pow' n 2 p]
+    _= 1 + 2 * n.factorization p := by rw[Nat.Prime.factorization' prime_p]
+    _= 2 * n.factorization p + 1 := by rw[add_comm]
   have : 2 * m.factorization p % 2 = (2 * n.factorization p + 1) % 2 := by
     rw [← eq1, sqr_eq, eq2]
   rw [add_comm, Nat.add_mul_mod_self_left, Nat.mul_mod_right] at this
   norm_num at this
+
+#check pow_eq_zero
+
+
+example {m n k r : ℕ} (nnz : n ≠ 0) (pow_eq : m ^ k = r * n ^ k) {p : ℕ} :
+    k ∣ r.factorization p := by
+  rcases r with _ | r
+  · simp
+--  have npow_nz : n ^ k ≠ 0 := fun npowz ↦ nnz (pow_eq_zero npowz)
+  have npow_nz : n ^ k ≠ 0 := by
+    intro npowz
+    have : n = 0 := by apply pow_eq_zero npowz
+    contradiction
+  have eq1 : (m ^ k).factorization p = k * m.factorization p := by
+    exact factorization_pow' m k p
+  have eq2 : ((r + 1) * n ^ k).factorization p =
+      k * n.factorization p + (r + 1).factorization p := by
+    calc
+      ((r + 1) * n ^ k).factorization p = (r+1).factorization p + (n ^ k).factorization p := by
+        apply factorization_mul'
+        exact Nat.succ_ne_zero r
+        exact npow_nz
+      _= (r+1).factorization p + k * n.factorization p := by rw[factorization_pow' n k p]
+      _= k * n.factorization p + (r+1).factorization p := by rw[add_comm]
+  have : r.succ.factorization p = k * m.factorization p - k * n.factorization p := by
+    rw [← eq1, pow_eq, eq2, add_comm, Nat.add_sub_cancel]
+  rw [this]
+  apply Nat.dvd_sub <;>
+  apply Nat.dvd_mul_right
 
 example {m n k r : ℕ} (nnz : n ≠ 0) (pow_eq : m ^ k = r * n ^ k) {p : ℕ} :
     k ∣ r.factorization p := by
@@ -137,13 +239,17 @@ example {m n k r : ℕ} (nnz : n ≠ 0) (pow_eq : m ^ k = r * n ^ k) {p : ℕ} :
   · simp
   have npow_nz : n ^ k ≠ 0 := fun npowz ↦ nnz (pow_eq_zero npowz)
   have eq1 : (m ^ k).factorization p = k * m.factorization p := by
-    sorry
+    rw [factorization_pow']
   have eq2 : ((r + 1) * n ^ k).factorization p =
       k * n.factorization p + (r + 1).factorization p := by
-    sorry
+    rw [factorization_mul' r.succ_ne_zero npow_nz, factorization_pow', add_comm]
   have : r.succ.factorization p = k * m.factorization p - k * n.factorization p := by
     rw [← eq1, pow_eq, eq2, add_comm, Nat.add_sub_cancel]
   rw [this]
-  sorry
+  apply Nat.dvd_sub <;>
+  apply Nat.dvd_mul_right
+
+
 
 #check multiplicity
+#check dvd_mul_right
