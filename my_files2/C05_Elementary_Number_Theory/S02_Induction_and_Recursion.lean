@@ -45,24 +45,10 @@ theorem dvd_fac {i n : ℕ} (ipos : 0 < i) (ile : i ≤ n) : i ∣ fac n := by
   rw [h]
   apply dvd_mul_right
 
-#check pow_succ
-#check pow_succ'
-#check Nat.succ_le_succ
-
 theorem pow_two_le_fac (n : ℕ) : 2 ^ (n - 1) ≤ fac n := by
   rcases n with _ | n
   · simp [fac]
-  induction' n with n ih
-  simp[fac]
-  simp at *
-  rw[pow_succ',fac]
-  apply mul_le_mul _ ih
-  apply pow_nonneg
-  norm_num
-  exact Nat.zero_le _
-  exact Nat.le_add_left 2 n
-
-
+  sorry
 section
 
 variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℕ) (n : ℕ)
